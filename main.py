@@ -1,4 +1,8 @@
+
 import logging
+import os
+from threading import Thread
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from telegram.ext import CallbackQueryHandler, CommandHandler, Updater
 
@@ -16,23 +20,45 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
+PORT = int(os.environ.get("PORT", "10000"))
+
+
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path in ("/", "/health"):
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"OK - O Eter de Wano")
+        else:
+            self.send_error(404)
+
+    def log_message(self, format, *args):
+        pass
+
+
+def start_http_server():
+    server = HTTPServer(("0.0.0.0", PORT), HealthHandler)
+    server.serve_forever()
+
 
 def soon_handler(update, context):
-    update.callback_query.answer(
-        "🚧 Em breve! Ainda estamos construindo esta área.", show_alert=True
-    )
+    if update.callback_query:
+        update.callback_query.answer(
+            "Em breve! Ainda estamos construindo esta área.",
+            show_alert=True,
+        )
 
 
 def main():
     if not BOT_TOKEN:
-        raise SystemExit("Defina BOT_TOKEN no arquivo .env ou nas variáveis de ambiente.")
+        raise SystemExit("Defina BOT_TOKEN nas variáveis de ambiente.")
+
+    Thread(target=start_http_server, daemon=True).start()
 
     updater = Updater(BOT_TOKEN, use_context=True)
     dp = updater.dispatcher
 
     dp.add_handler(CommandHandler("start", start))
-
-    # Específicos primeiro
     dp.add_handler(CallbackQueryHandler(choose_nation, pattern=r"^nation_.+$"))
     dp.add_handler(CallbackQueryHandler(choose_class, pattern=r"^class_.+$"))
     dp.add_handler(CallbackQueryHandler(main_menu, pattern=r"^main_menu$"))
@@ -47,11 +73,9 @@ def main():
     dp.add_handler(CallbackQueryHandler(show_inventory, pattern=r"^inventory$"))
     dp.add_handler(CallbackQueryHandler(use_item, pattern=r"^itemuse_.+$"))
     dp.add_handler(CallbackQueryHandler(show_lore, pattern=r"^lore$"))
-
-    # Genérico (em breve): sempre por último
     dp.add_handler(CallbackQueryHandler(soon_handler))
 
-    print("✅ Bot rodando!")
+    logging.info("Bot O Eter de Wano iniciado.")
     updater.start_polling()
     updater.idle()
 

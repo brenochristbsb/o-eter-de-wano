@@ -3,13 +3,13 @@ import logging
 from telegram.ext import CallbackQueryHandler, CommandHandler, Updater
 
 from config import BOT_TOKEN
-from handlers.combat import combat_attack, combat_flee, hunt
-from handlers.explore import enter_location, locked_location, rest, show_explore
-from handlers.inventory import show_inventory, use_item
-from handlers.lore import show_lore
-from handlers.menu import main_menu
-from handlers.start import choose_class, choose_nation, start
-from handlers.status import show_status
+from combate import combat_attack, combat_flee, hunt
+from explore import enter_location, locked_location, rest, show_explore
+from inventário import show_inventory, use_item
+from lore import show_lore
+from menu import main_menu
+from iniciar import choose_class, choose_nation, start
+from status import show_status
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
